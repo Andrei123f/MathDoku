@@ -22,28 +22,30 @@ public class Coursework extends Application {
 	public static void main(String[] args) {
 		launch(args);
 	}
+	
 	private class Setter{
-		private int numerOfCages=15;
+		private int numberOfCages=15;
 		private ArrayList<ArrayList> cages;
-
-		//make another set of names and then extract from that list and create the arraylists.
-		public Setter() {
-			this.cages=new ArrayList<ArrayList>();
-			for(int i=1;i<=15;i++) {
-				 String name="cage";
-				 name+= Integer.toString(i);
-				 
-				 System.out.println(name);
-				 
-
-		}
-				
-			}
 		
+		public Setter() {
+			cages=new ArrayList<ArrayList>();
+			for(int i=1;i<=numberOfCages;i++) {
+				cages.add(new ArrayList<Box>());
+				System.out.println("created a cage!");
+			}
+			int i=1;
+			for(ArrayList<Box> box :cages ){
+				System.out.println(box+ " "+i );
+				i++;
+			}
+				
+		}
+		
+
 	private Parent createContent(){
 		Pane root=new Pane();
 		root.setPrefSize(800, 800);
-		
+		ArrayList<Box> cage=cages.get(1);
 
 		int id;
 		for(int i=1;i<=6;i++) { // horizontal
