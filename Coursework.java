@@ -94,25 +94,44 @@ public class Coursework extends Application {
 	//for line 4 the range for left - right neighbours is 19-24
 	//for line 5 the range for left - right neighbours is 25-30
 	//for line 6 the range for left - right neighbours is 31-32
+	//check if the next element boxId is less than the current element boxId
+	//if it is not, we increment row and we get the current row we are in
+	//i will use columns to determine the possible neighbours
+	//if we are on the first and sixth(n th) column of the grid :
+	//the first column does not have a left neighbour
+	//the nth column does not have a rigt neighbour
 	private void drawCages() {
+		System.out.println();
+		int column=1;
 		int i=0;
 		int j;
-		int row=1;
+		boolean nextRow;
 		for(Box box : boxes) {
 			int boxId=box.getBoxId();
-			j=i; //the current element from the boxes ararylist
-			i++; //the next element from the boxes arraylist
+			j=i; 		//the last element of the arraylist
+			i++; 		// i the current element from the boxes arraylist
+				
+			if(i!=36) {
+				int currBoxId=boxes.get(i).getBoxId();
+				int lastBoxId=boxes.get(j).getBoxId();
+				
+				if(currBoxId < lastBoxId) {
+					column++;
+					System.out.println("New column! : " + column);
+					
+			}
+			}
 			
-			if(boxId == 36) {
-				System.out.println("The box is 36!"); //36 is n*n
+			
+			if(column==1) {
+				System.out.println("The box with the id of " + boxId +" has no left neighbour");
+			}
+			else if(column == 6) {
+				System.out.println("The box with the id of "+ boxId+" has no right neighbour");
 			}
 			else {
-				//check if the next element boxId is less than the current element boxId
-				//if it is not, we increment row and we get the current row we are in
-				//
+				System.out.println("The box with the id of "+boxId+" has left and right neighbours");
 			}
-			
-			
 			if(boxId-6>=1) {
 				System.out.println("The box with the id of " + boxId +" has an upper neighbour");
 			}
@@ -126,6 +145,8 @@ public class Coursework extends Application {
 			 else {
 				 System.out.println("The box with the id of " + boxId +" does not have below neighbour");
 			 }
+			 
+			//the current element from the boxes arraylist
 			
 		}
 	}
