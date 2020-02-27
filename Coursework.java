@@ -1,6 +1,8 @@
 package gui;
 
+import java.io.File;
 import java.util.ArrayList;
+import java.util.Scanner;
 
 import javafx.application.Application;
 import javafx.geometry.Insets;
@@ -13,97 +15,182 @@ import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Line;
 import javafx.scene.shape.Rectangle;
+import javafx.scene.text.Text;
 import javafx.stage.Stage;
 
 public class Coursework extends Application{
 	private Pane root=new Pane();
-	private int numberOfCages=15;
+	private int numberOfCages=20;
 	private ArrayList<ArrayList> cages=new ArrayList<ArrayList>();
 	private ArrayList<Box> boxes=new ArrayList<Box>();
 	
-	public void prepareObjects() {
+	public void prepareCages() {
 		for(int i=1;i<=numberOfCages;i++)
 			cages.add(new ArrayList<Box>());
 		
 	}
+	
+	public void readFile() {
+		Scanner x;
+		File file=new File("input.txt");
+		
+		//opening the file
+		try {
+			x=new Scanner(file);
+			System.out.println("found the file and is ready!");
+			
+			//reading from the file
+/*
+ * Each line defines one cage of the puzzle.
+The line starts with the target followed immediately by the arithmetic operator (or none if it's a single cell) for that cage.
+This is followed by a space and a sequence of cell IDs that belong to the cage (consecutive cell IDs are separated by a comma). 
+Here cells are numbered from 1 to (NxN), where 1 to N are the cells in the top row (left to right), N+1 to 2N are the cells in the 
+second row from the top, and so on.
+ */			
+			int i=0; //used for getting the correct cage
+			while(x.hasNext()) {
+				String line=x.nextLine(); //getting the current line
+				ArrayList<Box> cage=cages.get(i); //the cage of the current line
+				String targetBoxId=line.split(" ")[0].replaceAll("\\D+", ""); //getting the id of the targetCage
+				String operand=line.split(" ")[0].replaceAll("[0-9]",""); //getting the operand of the targetCage
+				System.out.println("the box id: "+ targetBoxId +" the operand: " + operand);
+
+				//addBoxToCage(getBoxById(targetBoxId), cage); //adding the targetCage to the cage
+				//getBoxById(targetBoxId).getBorder().setFill(Color.BLACK);
+				String part2=line.split(" ")[1]; //part 2 of the line
+				String[] numbers=part2.split(",");
+				int targetBoxID=Integer.parseInt(numbers[0]);
+				String label=targetBoxId+operand;
+				Box tB=this.getBoxById(targetBoxID);
+				tB.setTextArea(label);
+				Text text=tB.getTextArea();
+				text.setX(tB.getBorder().getX()+5);
+				text.setY(tB.getBorder().getY()+15);
+				
+				root.getChildren().add(text);
+				
+				
+				//System.out.println("The second part:" + part2);
+				//System.out.println("The numbers of the second part:");
+				for(String s : numbers) {
+					int boxId=Integer.parseInt(s);
+					addBoxToCage(getBoxById(boxId),cage);
+				}
+				System.out.println("The box id:" + i + "target box id: " + cage.get(0).getBoxId());
+				
+				i++;
+			}
+			
+		}catch(Exception e) {
+			System.out.println(e);
+		}
+		
+		
+		
+		
+	}
+	
+	
+	//check only bottom and right neighbour if you can 
 	public void searchNeighnours() {
 			System.out.println();
 			int column=1,i=0,j;
 			for(Box box:boxes) {
 				int boxId=box.getBoxId();
-				j=i; //the last element 
-				i++;	//the current element
 				
-				if(i!=36) {
-					int currBoxId=boxes.get(i).getBoxId();
-					int lastBoxId=boxes.get(j).getBoxId();
-					if(currBoxId < lastBoxId) {
-						column++;
-						System.out.println("New column! : " + column);
-					}
-				}
-				/*
-				if(column==1) {
-					System.out.println("The box with the id of " + boxId +" has no left neighbour");
-				}
-				else if(column == 6) {
-					System.out.println("The box with the id of "+ boxId+" has no right neighbour");
+				 if(column == 6) {
+					//System.out.println("The box with the id of "+ boxId+" has no right neighbour");
 				}
 				else {
-					System.out.println("The box with the id of "+boxId+" has left and right neighbours");
+				//	System.out.println("The box with the id of "+boxId+" has left and right neighbours");
+					drawCage(box,true,false);
+					
 				}
-				if(boxId-6>=1) {
-					System.out.println("The box with the id of " + boxId +" has an upper neighbour");
-				}
-				else {
-					System.out.println("The box with the id of " + boxId +" does not have an upper neighbour");
-				}
-				*/
+				
 				 if(boxId+6<=36) {
-					 System.out.println("The box with the id of " + boxId +" has an below neighbout");
-					 Rectangle border=box.getBorder();
-					double x=border.getX();
-					double y=border.getY();
-					double width=border.getWidth();
-					double height=border.getHeight();
-					 
-					 System.out.println(boxId+" X:"+x);
-					 System.out.println(boxId+" Y:"+y);
-					 
-					 double startX=x;
-					 double startY=y+height;
-					 double endX=x+width;
-					 double endY=startY;
-					 Line line=new Line(startX,startY,endX,endY);
-					 line.setStroke(Color.RED);
-					 line.setStrokeWidth(2);
-					 root.getChildren().add(line);
+					// System.out.println("The box with the id of " + boxId +" has an below neighbout");
+					 drawCage(box,false,true);
 				 }
 				 else {
 					 //System.out.println("The box with the id of " + boxId +" does not have below neighbour");
 				 }
+					j=i; //the last element 
+					i++;	//the current element
+					if(i!=36) {
+						int currBoxId=boxes.get(i).getBoxId();
+						int lastBoxId=boxes.get(j).getBoxId();
+						if(currBoxId < lastBoxId) {
+							column++;
+						//	System.out.println("New column! : " + column);
+						}
+					}
 				
 				
 			}
 			
 	}
 	
-	public void drawCage(Box box,boolean r,boolean l, boolean u,boolean d) {
+	public void drawCage(Box box,boolean r,boolean d) {
 		ArrayList<Box> cage=box.getSet();
 		int boxId=box.getBoxId();
+		double x=box.getBorder().getX();
+		double y=box.getBorder().getY();
+		double width=box.getBorder().getWidth();
+		double height=box.getBorder().getHeight();
+		
+		if(cage!=null) {
+	//	System.out.println("The box with the id of " + boxId+" has a cage!");
 		if(r) { //right			
-			
-			
-		}
-		if(l) {//left
-			
-		}
-		if(u) {//up
+			int rightBoxId=boxId+1;
+			Box rightNeighbour=getBoxById(rightBoxId);
+			if(!cage.contains(rightNeighbour)) {
+				 double startX=x+width;
+				 double startY=y;
+				 double endX=x+width;
+				 double endY=y+height;
+				 Line line=new Line(startX,startY,endX,endY);
+				 line.setStroke(Color.BLACK);
+				 line.setStrokeWidth(4);
+				 root.getChildren().add(line);
+				
+			}
 			
 		}
 		if(d) {//down
+			int downtBoxId=boxId+6;
+			Box downNeighbour=getBoxById(downtBoxId);
+			for(Box boxo : cage) {
+			//	System.out.println("The id of the boxo: " + boxo.getBoxId());
+			}
+			
+			if(cage.contains(downNeighbour) !=true) {
+				 double startX=x;
+				 double startY=y+height;
+				 double endX=x+width;
+				 double endY=startY;
+				 Line line=new Line(startX,startY,endX,endY);
+				 line.setStroke(Color.BLACK);
+				 line.setStrokeWidth(3);
+				 root.getChildren().add(line);
+				//draw a line
+				
+			}
+		}
 			
 		}
+	}
+	
+	public Box getBoxById(int id) {
+		int currId;
+		Box searchedBox=new Box();
+		
+		for(Box box : boxes) {
+			currId=box.getBoxId();
+			if(currId==id) {
+				return box;
+			}
+		}
+		return searchedBox;
 	}
 	
 
@@ -117,7 +204,7 @@ public class Coursework extends Application{
 		Button clear=new Button("clear");
 		TextField file=new TextField();
 		TextField input=new TextField();
-		this.prepareObjects();
+		this.prepareCages();
 		
 		int id;
 		for(int i=1;i<=6;i++) {
@@ -126,31 +213,15 @@ public class Coursework extends Application{
 				Box box=new Box();
 				box.setBoxId(id);
 				boxes.add(box);
-				Rectangle border=box.getBorder();
-				root.getChildren().addAll(border);
+				Rectangle border=box.getBorder();		
+				
 				border.setX(i*100);
 				border.setY(j*100);
+				root.getChildren().add(border);
 				id+=6;
 			}
 		}
-		addBoxToCage(boxes.get(0),cages.get(0));
-		addBoxToCage(boxes.get(1),cages.get(0));
-		addBoxToCage(boxes.get(12),cages.get(1));
-		addBoxToCage(boxes.get(13),cages.get(1));
-		ArrayList<Box> cage=cages.get(0);
-		
-		boxes.get(0).setSet(cages.get(0));
-		boxes.get(1).setSet(cages.get(0));
-		boxes.get(12).setSet(cages.get(1));
-		boxes.get(13).setSet(cages.get(1));
-		for(Box box : cage) {
-			System.out.println("The box id of the first cage: " + box.getBoxId());
-		}
-		
-		cage =cages.get(1);
-		for(Box box : cage) {
-			System.out.println("The box id of the secong cage: " + box.getBoxId());
-		}
+		readFile();
 		searchNeighnours();
 
 		hBox.getChildren().addAll(undo,redo,clear,file);
@@ -162,6 +233,7 @@ public class Coursework extends Application{
 	
 	public void addBoxToCage(Box box, ArrayList<Box> cage) {
 		cage.add(box);
+		box.setSet(cage);
 	}
 	public boolean isBoxInCage(Box box, ArrayList<Box> cage) {
 		return cage.contains(box);
