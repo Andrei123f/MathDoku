@@ -1,14 +1,18 @@
 package gui;
 
+import java.awt.event.ActionEvent;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Scanner;
 
 import javafx.application.Application;
+import javafx.event.Event;
+import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.TextField;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
@@ -19,6 +23,7 @@ import javafx.scene.text.Text;
 import javafx.stage.Stage;
 
 public class Coursework extends Application{
+	private Box clickedBox; //the selected box
 	private Pane root=new Pane();
 	private int numberOfCages=20;
 	private ArrayList<ArrayList> cages=new ArrayList<ArrayList>();
@@ -67,13 +72,18 @@ second row from the top, and so on.
 				text.setX(tB.getBorder().getX()+5);
 				text.setY(tB.getBorder().getY()+15);
 				
-				root.getChildren().add(text);
+				root.getChildren().addAll(text);
 				
 				
 				//System.out.println("The second part:" + part2);
 				//System.out.println("The numbers of the second part:");
 				for(String s : numbers) {
 					int boxId=Integer.parseInt(s);
+					Box box=getBoxById(boxId);
+					Text textFill=box.getTextFill();
+					textFill.setX(box.getBorder().getX()+box.getBorder().getWidth()/2);
+					textFill.setY(box.getBorder().getY()+box.getBorder().getWidth()/2);
+					root.getChildren().add(textFill);
 					addBoxToCage(getBoxById(boxId),cage);
 				}
 				System.out.println("The box id:" + i + "target box id: " + cage.get(0).getBoxId());
@@ -172,8 +182,7 @@ second row from the top, and so on.
 				 line.setStroke(Color.BLACK);
 				 line.setStrokeWidth(3);
 				 root.getChildren().add(line);
-				//draw a line
-				
+				//draw a line	
 			}
 		}
 			
@@ -199,11 +208,83 @@ second row from the top, and so on.
 		GridPane gridPane=new GridPane();
 		HBox hBox=new HBox(10); //parent for the buttons
 		hBox.setPadding(new Insets(10,10,10,10));
-		Button undo=new Button("undo");
-		Button redo=new Button("redo");
-		Button clear=new Button("clear");
+		Button undo=new Button("UNDO");
+		Button redo=new Button("REDO");
+		Button clear=new Button("CLEAR");
 		TextField file=new TextField();
 		TextField input=new TextField();
+		Button setButton=new Button("SET");
+		Button b1=new Button("+1");
+		Button b2=new Button("-1");
+		
+		b1.setOnMouseClicked(new EventHandler() {
+			public void handle(Event arg0) {
+				if(clickedBox!=null) {
+					String inputS=clickedBox.getTextFill().getText();
+					
+					if(inputS.equals("VALUE")) {
+						clickedBox.setTextFill("1");
+					}
+					else {
+						int inputN=Integer.parseInt(inputS);
+						if(inputN<6) {
+						inputN++;
+						inputS=Integer.toString(inputN);
+						clickedBox.setTextFill(inputS);
+						}
+						else {
+							System.out.println("Limit reached!");
+						}
+					}
+				}
+				
+			}
+			
+		});
+		b2.setOnMouseClicked(new EventHandler() {
+
+			@Override
+			public void handle(Event arg0) {
+				if(clickedBox!=null) {
+					String inputS=clickedBox.getTextFill().getText();
+					
+					if(inputS.equals("VALUE")) {
+						System.out.println("Cannot decrement!");
+					}
+					else {
+						int inputN=Integer.parseInt(inputS);
+						if(inputN>1) {
+						inputN--;
+						inputS=Integer.toString(inputN);
+						clickedBox.setTextFill(inputS);
+						}
+						else {
+							System.out.println("Limit reached!");
+						}
+					}
+				}
+				
+			}
+			
+		});
+		
+		setButton.setOnMouseClicked(new EventHandler() {
+
+			public void handle(Event arg0) {
+				if(clickedBox!=null) {
+					String numb = input.getText();
+					int number=Integer.parseInt(numb);
+					if(number<=6 && number>=1)
+					clickedBox.setTextFill(numb);
+					else
+						System.out.println("The number is greater than 6 or negative or 0!");
+				}
+				
+			}
+			
+		});
+		
+		
 		this.prepareCages();
 		
 		int id;
@@ -213,19 +294,29 @@ second row from the top, and so on.
 				Box box=new Box();
 				box.setBoxId(id);
 				boxes.add(box);
-				Rectangle border=box.getBorder();		
-				
+				Rectangle border=box.getBorder();	
 				border.setX(i*100);
 				border.setY(j*100);
-				root.getChildren().add(border);
+				/*
+				 * get text area, text target and rect and set the eventhandler for each.
+				 * new MouseEvent();
+				 * 
+				 */
+				border.setOnMouseClicked(new MouseHandler(box));
+				box.getTextArea().setOnMouseClicked(new MouseHandler(box));
+				box.getTextFill().setOnMouseClicked(new MouseHandler(box));
+				
+				root.getChildren().addAll(border);
 				id+=6;
 			}
 		}
 		readFile();
 		searchNeighnours();
+		
 
-		hBox.getChildren().addAll(undo,redo,clear,file);
-		root.getChildren().addAll(gridPane,hBox);
+		root.getChildren().addAll(gridPane);
+		hBox.getChildren().addAll(undo,redo,clear,file,input,setButton,b1,b2);
+		root.getChildren().addAll(hBox);
 		stage.setScene(new Scene(root));
 		stage.show();
 		
@@ -239,8 +330,42 @@ second row from the top, and so on.
 		return cage.contains(box);
 	}
 	
+	//Handler for selecting a box
+	class MouseHandler implements EventHandler<MouseEvent>{
+		private Box box;
+		public MouseHandler(Box in) {
+			box=in;
+			
+		}
+		public void handle(MouseEvent arg0) {
+			// TODO Auto-generated method stub
+
+			if(clickedBox==null) {
+				clickedBox=box;
+				clickedBox.setClicked(root);
+				System.out.println("Selected:" +clickedBox.getBoxId());
+			}
+			else {
+				if(box!=clickedBox) {
+				clickedBox.setUnClicked(root);
+				System.out.println("Deselected:" +clickedBox.getBoxId());
+				clickedBox=box;
+				clickedBox.setClicked(root);
+				System.out.println("Selected:" +clickedBox.getBoxId());
+				}
+				else {
+					System.out.println("Selecting the same box!");
+				}
+
+			}
+		}
+		
+	}
+	
 	public static void main(String[] args) {
 		launch(args);
 	}
+
+	
 	
 }
